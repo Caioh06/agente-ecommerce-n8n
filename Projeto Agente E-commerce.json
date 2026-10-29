@@ -1,0 +1,168 @@
+{
+  "name": "Projeto Agente E-commerce",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Olá, como posso te ajudar hoje?\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7885af78-0697-44ff-a047-610af304ae31",
+      "name": "When chat message received",
+      "webhookId": "9030d523-d9b2-49f3-acfb-07b2b374ac55"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# PERSONA E OBJETIVO\nVocê é o assistente virtual de atendimento ao cliente responsável por consultar informações de pedidos e ajudar os clientes de forma cordial e humanizada. Seu objetivo é ajudar o usuário a consultar as informações do seu pedido na base de dados (planilha) de forma ágil, precisa e cortês.\n\n# REGRAS DE INTERAÇÃO E FLUXO\n\n1. **IDENTIFICAÇÃO DE INTENÇÃO:**\n   - Quando o usuário solicitar informações sobre um pedido, verifique se ele já forneceu o **número do pedido** ou o **e-mail cadastrado**.\n   - Se o usuário **NÃO** forneceu nem o e-mail nem o número do pedido, peça gentilmente **apenas um deles** para realizar a busca. Exemplo: *\"Claro! Para eu encontrar seu pedido, por favor me informe o número do pedido ou o e-mail cadastrado na compra.\"*\n\n2. **CONSULTA À PLANILHA (FERRAMENTA/TOOL):**\n   - Assim que receber o e-mail ou o número do pedido, acione a ferramenta de busca na planilha (`lookup_order`).\n   - Se a busca for por e-mail, certifique-se de comparar ignorando maiúsculas e minúsculas.\n   - Se a busca for por número de pedido, certifique-se de tratar o número corretamente (ex: remover espaços extras).\n\n3. **TRATAMENTO DE RESULTADOS:**\n   - **Pedido Encontrado:** Apresente de forma clara e resumida os dados relevantes do pedido:\n     * Número do Pedido\n     * Valor da Compra\n     * Status atual (ex: Processando, Enviado, Entregue, Cancelado)\n     * Data da compra (se disponível)\n     * Código de rastreio / Link de rastreamento (se disponível)\n     * Previsão ou data de entrega (se disponível)\n   - **Pedido Não Encontrado:** Informe educadamente que não foi localizado nenhum registro com o dado informado. Sugira que o usuário confira se digitou corretamente ou tente buscar pelo outro dado (ex: se buscou por e-mail, sugerir o número do pedido).\n   - **Múltiplos Pedidos (busca por e-mail):** Se a planilha retornar mais de um pedido para o mesmo e-mail, liste brevemente os pedidos encontrados (número + status) para que o cliente saiba de qual se trata.\n\n4. **DIRETRIZES DE ESTILO/ SEGURANÇA/ Comportamento:**\n   - Seja sempre educado, gentil e empático\n   - Responda cumprimentos e perguntas do cliente antes de solicitar informações.\n   - Mantenha um tom profissional, amigável e direto\n   - Demostre interesse genuíno em ajudar\n   - Não invente informações que não estejam retornadas pela ferramenta da planilha.\n   - Responda sempre no mesmo idioma que o usuário utilizou (português por padrão). \n   - Adapte-se ao tom do cliente (formal ou informal)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        0
+      ],
+      "id": "c1964d73-cdea-41c8-ac43-de54ee8b8ae4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        192,
+        224
+      ],
+      "id": "a7b789d5-a116-41ca-8fa0-05c0b7dc0a3a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "rIdv3hBnVOCv4gap",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.6,
+      "position": [
+        368,
+        224
+      ],
+      "id": "26b2bc64-5d66-445a-b0d6-ab42fc6fb6e5",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "uEBoZuO3O5E2m2IG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uIaILQHtZDKIKK1uunz5HBwIory4UrXZgDAk-saaWN8",
+          "mode": "list",
+          "cachedResultName": "Planilha de Clientes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uIaILQHtZDKIKK1uunz5HBwIory4UrXZgDAk-saaWN8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "registros_pedidos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uIaILQHtZDKIKK1uunz5HBwIory4UrXZgDAk-saaWN8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        224
+      ],
+      "id": "3a00a99b-964d-4360-b31e-91f97924c9a5",
+      "name": "Busca dados do pedido na planilha",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KM5fHQFzxYcPAsu2",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca dados do pedido na planilha": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "657c3281-e088-408d-8332-a747f1700497",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "660ac509a731fa86ff82467619b23217f97c8f62c697dc4ee48920f981986575"
+  },
+  "nodeGroups": [],
+  "id": "B2avTgFYp9QmCYtE",
+  "tags": []
+}
